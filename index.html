@@ -90,10 +90,8 @@ body{display:flex;justify-content:center;align-items:flex-start}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* GRID */
-#grid-wrap{width:100%;padding:4px 10px 4px;flex-shrink:0;flex:1;
-  display:flex;flex-direction:column}
-#grid-wrap #grid{flex:1}
-#grid{width:100%;height:100%;display:grid;gap:3px;
+#grid-wrap{width:100%;padding:4px 10px;flex-shrink:0}
+#grid{width:100%;aspect-ratio:1;display:grid;gap:3px;
   background:#b0a070;border:3px solid #2c1f0e;border-radius:14px;
   padding:5px;box-shadow:0 4px 12px rgba(0,0,0,0.25)}
 .cell{background:#fff;border:2px solid #c8b88a;border-radius:10px;
@@ -152,34 +150,42 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .abtn.rst{color:#c62828}
 .abtn.skp{color:#555}
 
-/* KEYBOARD - floating overlay, never pushes content */
-#kb-overlay{position:absolute;inset:0;z-index:50;background:rgba(0,0,0,0);
-  pointer-events:none;transition:background .2s}
-#kb-overlay.open{background:rgba(0,0,0,0.35);pointer-events:auto}
+/* KEYBOARD - fixed overlay, truly floats over everything */
+#kb-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0);
+  pointer-events:none;
+  transition:background .2s;
+}
+#kb-overlay.open{
+  background:rgba(0,0,0,0.4);
+  pointer-events:auto;
+}
 #kb-panel{
-  position:absolute;bottom:0;left:0;right:0;z-index:51;
+  position:fixed;
+  bottom:0;left:50%;
+  transform:translateX(-50%) translateY(100%);
+  width:100%;max-width:420px;
+  z-index:201;
   background:#f5ead4;
   border-top:3px solid #2c1f0e;
   border-radius:20px 20px 0 0;
-  padding:10px 6px max(20px, env(safe-area-inset-bottom));
-  transform:translateY(100%);
+  padding:10px 6px 24px;
   transition:transform .22s cubic-bezier(.4,0,0.2,1);
-  box-shadow:0 -6px 24px rgba(0,0,0,.3);
-  /* IMPORTANT: never participate in layout flow */
-  will-change:transform;
+  box-shadow:0 -6px 24px rgba(0,0,0,.35);
 }
-#kb-panel.open{transform:translateY(0)}
-#kb-panel-title{text-align:center;font-size:13px;font-weight:700;
-  color:#6b5a3e;margin-bottom:6px;letter-spacing:.5px}
-#kb-drag{width:40px;height:4px;border-radius:2px;background:#c8b88a;
-  margin:0 auto 8px;cursor:pointer}
+#kb-panel.open{
+  transform:translateX(-50%) translateY(0);
+}
+#kb-panel-title{
+  text-align:center;font-size:13px;font-weight:700;
+  color:#6b5a3e;margin-bottom:6px;letter-spacing:.5px;
+}
+#kb-drag{
+  width:40px;height:4px;border-radius:2px;background:#c8b88a;
+  margin:0 auto 8px;cursor:pointer;
+}
 #keyboard{width:100%;padding:0 2px}
-.krow{margin-bottom:4px}
-/* When KB open - dim but keep grid visible above */
-#kb-panel .kbtn{
-  height:clamp(36px,9vw,44px);
-  width:clamp(28px,8.5vw,38px);
-}
 .krow{display:flex;justify-content:center;gap:3px;margin-bottom:3px}
 .kbtn{flex:0 0 auto;width:clamp(26px,7.5vw,36px);height:clamp(32px,8.5vw,40px);
   border-radius:7px;border:2px solid #c8b88a;background:#fff;
