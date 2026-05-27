@@ -53,19 +53,20 @@ body{display:flex;justify-content:center;align-items:flex-start}
 /* ── GAME ── */
 #screen-game{justify-content:flex-start;background:#e8dcc8;
   background-image:repeating-linear-gradient(0deg,transparent,transparent 58px,rgba(0,0,0,0.04) 58px,rgba(0,0,0,0.04) 59px),
-  repeating-linear-gradient(90deg,transparent,transparent 58px,rgba(0,0,0,0.04) 58px,rgba(0,0,0,0.04) 59px)}
+  repeating-linear-gradient(90deg,transparent,transparent 58px,rgba(0,0,0,0.04) 58px,rgba(0,0,0,0.04) 59px);
+  overflow:hidden}
 
 /* topbar */
 #topbar{width:100%;display:flex;align-items:flex-start;
-  justify-content:space-between;padding:10px 12px 6px;flex-shrink:0}
+  justify-content:space-between;padding:8px 12px 4px;flex-shrink:0}
 .pinfo{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:68px}
-.avatar{width:54px;height:54px;border-radius:50%;border:3px solid #888;
+.avatar{width:48px;height:48px;border-radius:50%;border:3px solid #888;
   background:#d0c8b0;display:flex;align-items:center;justify-content:center;
   font-size:28px;box-shadow:0 2px 6px rgba(0,0,0,0.2);transition:border-color .2s,border-width .2s}
-.avatar.active{border-color:#2196F3;border-width:4px}
+.avatar.active{border-color:#2196F3;border-width:3px}
 .pname{font-size:11px;font-weight:800;color:#6b5a3e;max-width:68px;
   text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pscore{font-size:28px;font-weight:900;color:#2c1f0e;line-height:1}
+.pscore{font-size:24px;font-weight:900;color:#2c1f0e;line-height:1}
 
 /* center panel */
 #cpanel{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 4px}
@@ -80,7 +81,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
   min-width:110px;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,0.15)}
 
 /* statusbar */
-#statusbar{width:100%;padding:2px 14px;display:flex;
+#statusbar{width:100%;padding:1px 14px;display:flex;
   align-items:center;justify-content:space-between;flex-shrink:0}
 #status-msg{font-size:13px;font-weight:700;color:#6b5a3e;
   flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
@@ -89,8 +90,10 @@ body{display:flex;justify-content:center;align-items:flex-start}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* GRID */
-#grid-wrap{width:100%;padding:4px 10px 4px;flex-shrink:0}
-#grid{width:100%;aspect-ratio:1;display:grid;gap:3px;
+#grid-wrap{width:100%;padding:4px 10px 4px;flex-shrink:0;flex:1;
+  display:flex;flex-direction:column}
+#grid-wrap #grid{flex:1}
+#grid{width:100%;height:100%;display:grid;gap:3px;
   background:#b0a070;border:3px solid #2c1f0e;border-radius:14px;
   padding:5px;box-shadow:0 4px 12px rgba(0,0,0,0.25)}
 .cell{background:#fff;border:2px solid #c8b88a;border-radius:10px;
@@ -118,11 +121,11 @@ body{display:flex;justify-content:center;align-items:flex-start}
   font-weight:900;color:#1b5e20;opacity:.75}
 
 /* WORD HISTORY */
-#whist-wrap{width:100%;padding:2px 10px 2px;flex-shrink:0;
-  max-height:112px;overflow-y:auto}
+#whist-wrap{width:100%;padding:1px 10px 1px;flex-shrink:0;
+  max-height:88px;overflow-y:auto}
 #whist{display:flex;flex-direction:column;gap:2px}
-.wrow{display:flex;align-items:center;gap:6px;padding:3px 8px;
-  border-radius:8px;font-size:13px;font-weight:700}
+.wrow{display:flex;align-items:center;gap:6px;padding:2px 8px;
+  border-radius:8px;font-size:12px;font-weight:700}
 .wrow.p0{background:rgba(233,30,99,.1)}
 .wrow.p1{background:rgba(30,136,229,.1)}
 .wrow-name{font-size:11px;font-weight:800;min-width:62px;
@@ -133,8 +136,8 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .wrow-pts{font-size:11px;color:#888;margin-left:auto}
 
 /* ACTION BAR */
-#action-bar{width:100%;padding:3px 10px;display:flex;gap:6px;flex-shrink:0}
-.abtn{flex:1;padding:10px 6px;border-radius:10px;border:2.5px solid #2c1f0e;
+#action-bar{width:100%;padding:2px 10px;display:flex;gap:6px;flex-shrink:0}
+.abtn{flex:1;padding:8px 4px;border-radius:10px;border:2.5px solid #2c1f0e;
   background:#fff;font-size:14px;font-weight:800;cursor:pointer;
   box-shadow:0 3px 0 rgba(0,0,0,0.2);
   transition:transform .08s,box-shadow .08s;
@@ -149,23 +152,34 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .abtn.rst{color:#c62828}
 .abtn.skp{color:#555}
 
-/* KEYBOARD - slide up panel */
+/* KEYBOARD - floating overlay, never pushes content */
 #kb-overlay{position:absolute;inset:0;z-index:50;background:rgba(0,0,0,0);
   pointer-events:none;transition:background .2s}
-#kb-overlay.open{background:rgba(0,0,0,0.3);pointer-events:auto}
-#kb-panel{position:absolute;bottom:0;left:0;right:0;z-index:51;
-  background:#f5ead4;border-top:3px solid #2c1f0e;
+#kb-overlay.open{background:rgba(0,0,0,0.35);pointer-events:auto}
+#kb-panel{
+  position:absolute;bottom:0;left:0;right:0;z-index:51;
+  background:#f5ead4;
+  border-top:3px solid #2c1f0e;
   border-radius:20px 20px 0 0;
-  padding:12px 6px 20px;
+  padding:10px 6px max(20px, env(safe-area-inset-bottom));
   transform:translateY(100%);
-  transition:transform .25s cubic-bezier(.4,0,0.2,1);
-  box-shadow:0 -4px 20px rgba(0,0,0,.25)}
+  transition:transform .22s cubic-bezier(.4,0,0.2,1);
+  box-shadow:0 -6px 24px rgba(0,0,0,.3);
+  /* IMPORTANT: never participate in layout flow */
+  will-change:transform;
+}
 #kb-panel.open{transform:translateY(0)}
 #kb-panel-title{text-align:center;font-size:13px;font-weight:700;
-  color:#6b5a3e;margin-bottom:8px;letter-spacing:.5px}
+  color:#6b5a3e;margin-bottom:6px;letter-spacing:.5px}
 #kb-drag{width:40px;height:4px;border-radius:2px;background:#c8b88a;
-  margin:0 auto 10px}
+  margin:0 auto 8px;cursor:pointer}
 #keyboard{width:100%;padding:0 2px}
+.krow{margin-bottom:4px}
+/* When KB open - dim but keep grid visible above */
+#kb-panel .kbtn{
+  height:clamp(36px,9vw,44px);
+  width:clamp(28px,8.5vw,38px);
+}
 .krow{display:flex;justify-content:center;gap:3px;margin-bottom:3px}
 .kbtn{flex:0 0 auto;width:clamp(26px,7.5vw,36px);height:clamp(32px,8.5vw,40px);
   border-radius:7px;border:2px solid #c8b88a;background:#fff;
@@ -181,8 +195,8 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .kbtn.sel.vow{background:#c62828;border-color:#8b0000}
 
 /* TOOLBAR */
-#toolbar{width:100%;padding:6px 14px;display:flex;align-items:center;
-  justify-content:flex-start;flex-shrink:0;margin-top:auto}
+#toolbar{width:100%;padding:4px 14px 6px;display:flex;align-items:center;
+  justify-content:flex-start;flex-shrink:0}
 .tbtn{width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.65);
   border:2px solid #c8b88a;display:flex;align-items:center;justify-content:center;
   cursor:pointer;font-size:20px;box-shadow:0 2px 4px rgba(0,0,0,.12);
