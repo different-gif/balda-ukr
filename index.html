@@ -4367,8 +4367,8 @@ function renderGrid(){
 
       if(inPath){
         div.classList.add('inpath');
-        // Show number only on first cell
-        if(pi===0){ const n=el('span','path-n','1'); div.appendChild(n); }
+        const n=el('span','path-n',pi+1);
+        div.appendChild(n);
       }
 
       // swipe handled by grid-level listener
@@ -4606,49 +4606,78 @@ document.addEventListener('DOMContentLoaded',()=>{
 function setupGridSwipe(){
   const g=$('grid');
   let lastCell=null;
-  let pointerDown=false;
+  let isDown=false;
+  let moved=false;
 
-  g.addEventListener('pointerdown',e=>{
-    e.preventDefault();
-    pointerDown=true;
-    S_swipe=false; // will become true only on move
-    lastCell=null;
-    const cell=cellFromPoint(e.clientX,e.clientY);
-    if(cell){
-      // On pointerdown just remember the cell, don't act yet
-      lastCell=cell;
-    }
+  // TOUCH events (mobile) - with preventDefault to block scroll
+  g.addEventListener('touchstart',e=>{
+    e.preventDefault(); // THIS is what blocks scroll on mobile
+    isDown=true; moved=false; lastCell=null;
+    const t=e.touches[0];
+    const cell=cellFromPoint(t.clientX,t.clientY);
+    if(cell) lastCell=cell;
   },{passive:false});
 
-  g.addEventListener('pointermove',e=>{
-    if(!pointerDown) return;
+  g.addEventListener('touchmove',e=>{
     e.preventDefault();
-    const cell=cellFromPoint(e.clientX,e.clientY);
+    if(!isDown) return;
+    moved=true;
+    const t=e.touches[0];
+    const cell=cellFromPoint(t.clientX,t.clientY);
     if(!cell) return;
-
-    // First move - activate swipe mode and process initial cell
     if(!S_swipe){
       S_swipe=true;
-      if(lastCell) tapCell(lastCell.r, lastCell.c);
+      if(lastCell) tapCell(lastCell.r,lastCell.c);
     }
-
-    if(lastCell && cell.r===lastCell.r && cell.c===lastCell.c) return;
+    if(lastCell&&cell.r===lastCell.r&&cell.c===lastCell.c) return;
     lastCell=cell;
     addToPath(cell.r,cell.c);
   },{passive:false});
 
-  g.addEventListener('pointerup',e=>{
-    if(pointerDown && !S_swipe && lastCell){
-      // Was a tap (no move) - process as single tap
-      tapCell(lastCell.r, lastCell.c);
+  g.addEventListener('touchend',e=>{
+    e.preventDefault();
+    if(isDown&&!moved&&lastCell){
+      tapCell(lastCell.r,lastCell.c);
     }
-    pointerDown=false;
-    S_swipe=false;
-    lastCell=null;
+    isDown=false; moved=false; S_swipe=false; lastCell=null;
+  },{passive:false});
+
+  g.addEventListener('touchcancel',e=>{
+    isDown=false; moved=false; S_swipe=false; lastCell=null;
   },{passive:true});
 
-  g.addEventListener('pointerleave',e=>{ pointerDown=false; S_swipe=false; },{passive:true});
-  g.addEventListener('pointercancel',e=>{ pointerDown=false; S_swipe=false; },{passive:true});
+  // MOUSE events (desktop)
+  g.addEventListener('mousedown',e=>{
+    e.preventDefault();
+    isDown=true; moved=false; lastCell=null;
+    const cell=cellFromPoint(e.clientX,e.clientY);
+    if(cell) lastCell=cell;
+  });
+
+  g.addEventListener('mousemove',e=>{
+    if(!isDown) return;
+    moved=true;
+    const cell=cellFromPoint(e.clientX,e.clientY);
+    if(!cell) return;
+    if(!S_swipe){
+      S_swipe=true;
+      if(lastCell) tapCell(lastCell.r,lastCell.c);
+    }
+    if(lastCell&&cell.r===lastCell.r&&cell.c===lastCell.c) return;
+    lastCell=cell;
+    addToPath(cell.r,cell.c);
+  });
+
+  g.addEventListener('mouseup',e=>{
+    if(isDown&&!moved&&lastCell){
+      tapCell(lastCell.r,lastCell.c);
+    }
+    isDown=false; moved=false; S_swipe=false; lastCell=null;
+  });
+
+  document.addEventListener('mouseup',()=>{
+    isDown=false; moved=false; S_swipe=false;
+  });
 }
 
 // ── LETTER PICK ──────────────────────────────────────────────
@@ -4889,22 +4918,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   showScreen('screen-home');
   $('ok-btn').disabled=true;
   setupGridSwipe();
-
-  // Block ALL scroll/bounce on iOS Safari
-  document.addEventListener('touchmove', e=>{
-    e.preventDefault();
-  }, {passive:false});
-
-  // Also block touchstart scroll initiation outside grid
-  document.addEventListener('touchstart', e=>{
-    // Allow touches on interactive elements
-    const tag = e.target.tagName;
-    if(tag==='INPUT'||tag==='TEXTAREA') return;
-    // Prevent default to stop scroll
-    if(!e.target.closest('#kb-panel') && !e.target.closest('input')){
-      e.preventDefault();
-    }
-  }, {passive:false});
 });
 
 </script>
