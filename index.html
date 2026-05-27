@@ -11,14 +11,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;min-height:100vh;
+html,body{width:100%;height:100%;
   font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;
   background:#b0a080;color:#2c1f0e;
-  touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  touch-action:none;
+  user-select:none;-webkit-user-select:none;
+  overflow:hidden;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+}
 body{display:flex;justify-content:center;align-items:flex-start}
-#app-wrap{width:100%;max-width:420px;height:100vh;
+#app-wrap{width:100%;max-width:420px;height:100%;
   position:relative;overflow:hidden;
-  background:#e8dcc8;box-shadow:0 0 40px rgba(0,0,0,0.4)}
+  background:#e8dcc8;box-shadow:0 0 40px rgba(0,0,0,0.4);
+  touch-action:none;}
 
 /* BG */
 #bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
@@ -91,7 +97,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
 
 /* GRID */
 #grid-wrap{width:100%;padding:4px 10px;flex-shrink:0}
-#grid{width:100%;aspect-ratio:1;display:grid;gap:3px;
+#grid{width:100%;aspect-ratio:1;display:grid;gap:3px;touch-action:none;
   background:#b0a070;border:3px solid #2c1f0e;border-radius:14px;
   padding:5px;box-shadow:0 4px 12px rgba(0,0,0,0.25)}
 .cell{background:#fff;border:2px solid #c8b88a;border-radius:10px;
@@ -4883,6 +4889,22 @@ document.addEventListener('DOMContentLoaded',()=>{
   showScreen('screen-home');
   $('ok-btn').disabled=true;
   setupGridSwipe();
+
+  // Block ALL scroll/bounce on iOS Safari
+  document.addEventListener('touchmove', e=>{
+    e.preventDefault();
+  }, {passive:false});
+
+  // Also block touchstart scroll initiation outside grid
+  document.addEventListener('touchstart', e=>{
+    // Allow touches on interactive elements
+    const tag = e.target.tagName;
+    if(tag==='INPUT'||tag==='TEXTAREA') return;
+    // Prevent default to stop scroll
+    if(!e.target.closest('#kb-panel') && !e.target.closest('input')){
+      e.preventDefault();
+    }
+  }, {passive:false});
 });
 
 </script>
