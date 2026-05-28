@@ -901,6 +901,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   $('cw-cancel-btn').addEventListener('click',()=>{
     closeNotFoundModal();
+    clearTurn(); // Also reset the path/placed letter
   });
 });
 
