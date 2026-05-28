@@ -102,14 +102,14 @@ body{display:flex;justify-content:center;align-items:flex-start}
   padding:5px;box-shadow:0 4px 12px rgba(0,0,0,0.25)}
 .cell{background:#fff;border:2px solid #c8b88a;border-radius:10px;
   display:flex;align-items:center;justify-content:center;
-  font-size:clamp(16px,5vw,26px);font-weight:900;color:#2c1f0e;
+  font-size:var(--cell-font,clamp(16px,5vw,26px));font-weight:900;color:#2c1f0e;
   cursor:pointer;position:relative;
   box-shadow:0 2px 0 rgba(0,0,0,0.12);
   transition:background .1s,border-color .1s,transform .08s;
   -webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .cell:active{transform:scale(.92)}
-.cell.empty{background:#f5f0e8;color:#c0b088}
-.cell.empty::after{content:'?';font-size:clamp(18px,5.5vw,28px);
+.cell.empty{background:#f5f0e8}
+.cell.empty.placeable::after{content:'?';font-size:clamp(18px,5.5vw,28px);
   color:#c8b898;font-weight:900;opacity:.55}
 /* start word - yellow circle style like original */
 .cell.start{background:#f0e68c;border-color:#c8a800;border-width:2.5px;
@@ -118,8 +118,8 @@ body{display:flex;justify-content:center;align-items:flex-start}
   animation:pop .18s ease-out}
 .cell.inpath{background:#b9f6ca;border-color:#00c853;border-width:2.5px}
 .cell.inpath.placed{background:#69ffaa;border-color:#00e676}
-.cell.used0{background:#ffe0f0;border-color:#e91e63}
-.cell.used1{background:#e3f2fd;border-color:#1e88e5}
+.cell.used0{background:#e8e0d0;border-color:#b0a080}
+.cell.used1{background:#e8e0d0;border-color:#b0a080}
 @keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
 .path-n{position:absolute;top:1px;right:3px;font-size:8px;
   font-weight:900;color:#1b5e20;opacity:.75}
@@ -138,6 +138,11 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .wrow.p1 .wrow-name{color:#1565c0}
 .wrow-word{font-size:14px;font-weight:900;color:#2c1f0e;letter-spacing:.5px}
 .wrow-pts{font-size:11px;color:#888;margin-left:auto}
+.wrow-hint{font-size:13px;margin-left:4px;opacity:.6}
+.fs-btn{flex:1;padding:8px;border-radius:8px;border:2px solid #c8b88a;
+  background:#fff;font-size:13px;font-weight:700;cursor:pointer;
+  font-family:inherit;}
+.fs-btn.active{background:#f0e68c;border-color:#b09a00;}
 
 /* ACTION BAR */
 #action-bar{width:100%;padding:2px 10px;display:flex;gap:6px;flex-shrink:0}
@@ -195,7 +200,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .krow{display:flex;justify-content:center;gap:3px;margin-bottom:3px}
 .kbtn{flex:0 0 auto;width:clamp(26px,7.5vw,36px);height:clamp(32px,8.5vw,40px);
   border-radius:7px;border:2px solid #c8b88a;background:#fff;
-  font-size:clamp(12px,3.2vw,16px);font-weight:800;color:#2c1f0e;
+  font-size:var(--kb-font,clamp(12px,3.2vw,16px));font-weight:800;color:#2c1f0e;
   cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,0.18);
   display:flex;align-items:center;justify-content:center;
   transition:transform .07s,box-shadow .07s;
@@ -393,6 +398,18 @@ body{display:flex;justify-content:center;align-items:flex-start}
     </div>
     <div class="chk on" id="s-timer-chk">
       <div class="chk-ico"></div><span>Таймер увімкнений</span>
+    </div>
+  </div>
+  <div class="msec">
+    <div class="mlabel">Відображення</div>
+    <div class="mlabel left">Розмір шрифту на полі</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="fs-btn" data-fs="sm" onclick="setFontSize('sm')">Малий</button>
+      <button class="fs-btn" data-fs="md" onclick="setFontSize('md')">Середній</button>
+      <button class="fs-btn" data-fs="lg" onclick="setFontSize('lg')">Великий</button>
+    </div>
+    <div class="chk" id="s-hlused" onclick="toggleHlUsed()">
+      <div class="chk-ico"></div><span>Підсвічувати букви гравців кольором</span>
     </div>
   </div>
   <div style="text-align:center;color:#9e8a6a;font-size:12px;padding:8px 0 40px">v1.0 · Балда UA</div>
@@ -4288,6 +4305,8 @@ const S = {
   // settings
   gridSize:5, timerSec:120, timerOn:true,
   diagonal:true, hlVowels:true,
+  hlUsed:false,       // highlight used cells by player color
+  fontSize:'md',      // 'sm','md','lg'
   names:['Гравець 1','Гравець 2'],
   // game
   grid:[], cur:0, scores:[0,0],
@@ -4365,6 +4384,7 @@ function renderGrid(){
         else if(d.owner===1) div.classList.add('used1');
       } else {
         div.classList.add('empty');
+        if(hasNeighbour(r,c)) div.classList.add('placeable');
       }
 
       if(inPath){
@@ -4495,16 +4515,24 @@ function renderWordList(){
     wh.innerHTML='<div style="color:#aaa;font-size:12px;padding:4px 8px">Слова зʼявляться тут…</div>';
     return;
   }
-  // Show last 5 words, newest first
   const recent=[...S.usedWords].reverse().slice(0,5);
   recent.forEach(({word,player})=>{
     const row=el('div',`wrow p${player}`);
     const nm=el('span','wrow-name',S.names[player]);
     const wd=el('span','wrow-word',word);
     const pt=el('span','wrow-pts','+'+word.length);
-    row.appendChild(nm); row.appendChild(wd); row.appendChild(pt);
+    const hint=el('span','wrow-hint','📖');
+    row.appendChild(nm); row.appendChild(wd); row.appendChild(pt); row.appendChild(hint);
+    // Tap to show definition
+    row.addEventListener('click',()=>showDefinition(word));
+    row.style.cursor='pointer';
     wh.appendChild(row);
   });
+}
+
+function showDefinition(word){
+  const url='https://slovnyk.ua/index.php?swrd='+encodeURIComponent(word);
+  window.open(url,'_blank');
 }
 
 function renderScores(){
@@ -4877,6 +4905,7 @@ $('ng-timer-btn').addEventListener('click',()=>{
 $('ng-diag').addEventListener('click',()=>{ S.diagonal=!S.diagonal; $('ng-diag').classList.toggle('on',S.diagonal); });
 $('ng-start').addEventListener('click',()=>{
   closeNG(); S.active=false; stopTimer();
+  savePrefs();
   initGame();
   $('go-ov').classList.add('hidden');
   showScreen('screen-game');
@@ -4907,12 +4936,33 @@ function loadSettings(){
   $('s-diag').classList.toggle('on',S.diagonal);
   $('s-vowels').classList.toggle('on',S.hlVowels);
   $('s-timer-chk').classList.toggle('on',S.timerOn);
+  $('s-hlused').classList.toggle('on',S.hlUsed);
+  document.querySelectorAll('.fs-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.fs===S.fontSize);
+  });
 }
 $('s-back').addEventListener('click',()=>{
   S.names[0]=$('s-name0').value.trim()||'Гравець 1';
   S.names[1]=$('s-name1').value.trim()||'Гравець 2';
+  savePrefs();
   renderScores(); showScreen('screen-home');
 });
+
+function setFontSize(fs){
+  S.fontSize=fs;
+  applyFontSize();
+  savePrefs();
+  // Update button states
+  document.querySelectorAll('.fs-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.fs===fs);
+  });
+}
+function toggleHlUsed(){
+  S.hlUsed=!S.hlUsed;
+  $('s-hlused').classList.toggle('on',S.hlUsed);
+  applyUsedColor();
+  savePrefs();
+}
 $('s-grid-btn').addEventListener('click',()=>{
   const i=GRID_OPTS.indexOf(S.gridSize); S.gridSize=GRID_OPTS[(i+1)%GRID_OPTS.length];
   $('s-grid-val').textContent=S.gridSize+'x'+S.gridSize;
@@ -4950,7 +5000,50 @@ function makeBG(){
 }
 
 // ── BOOT ─────────────────────────────────────────────────────
+// ── SETTINGS PERSISTENCE ─────────────────────────────────────
+function savePrefs(){
+  const prefs={
+    gridSize:S.gridSize, timerSec:S.timerSec, timerOn:S.timerOn,
+    diagonal:S.diagonal, hlVowels:S.hlVowels, hlUsed:S.hlUsed,
+    fontSize:S.fontSize,
+    names:S.names
+  };
+  try{ localStorage.setItem('baldaPrefs',JSON.stringify(prefs)); }catch(e){}
+}
+function loadPrefs(){
+  try{
+    const p=JSON.parse(localStorage.getItem('baldaPrefs')||'{}');
+    if(p.gridSize) S.gridSize=p.gridSize;
+    if(p.timerSec) S.timerSec=p.timerSec;
+    if(p.timerOn!==undefined) S.timerOn=p.timerOn;
+    if(p.diagonal!==undefined) S.diagonal=p.diagonal;
+    if(p.hlVowels!==undefined) S.hlVowels=p.hlVowels;
+    if(p.hlUsed!==undefined) S.hlUsed=p.hlUsed;
+    if(p.fontSize) S.fontSize=p.fontSize;
+    if(p.names) S.names=p.names;
+  }catch(e){}
+  applyFontSize();
+  applyUsedColor();
+}
+function applyFontSize(){
+  const sizes={sm:'clamp(13px,3.5vw,18px)',md:'clamp(16px,5vw,26px)',lg:'clamp(19px,6vw,32px)'};
+  const kbSizes={sm:'clamp(10px,2.8vw,14px)',md:'clamp(12px,3.2vw,16px)',lg:'clamp(14px,3.8vw,19px)'};
+  document.documentElement.style.setProperty('--cell-font', sizes[S.fontSize]||sizes.md);
+  document.documentElement.style.setProperty('--kb-font', kbSizes[S.fontSize]||kbSizes.md);
+}
+function applyUsedColor(){
+  const s=document.getElementById('used-color-style')||document.createElement('style');
+  s.id='used-color-style';
+  if(S.hlUsed){
+    s.textContent='.cell.used0{background:#ffe0f0!important;border-color:#e91e63!important}.cell.used1{background:#e3f2fd!important;border-color:#1e88e5!important}';
+  } else {
+    s.textContent='.cell.used0{background:#e8e0d0;border-color:#b0a080}.cell.used1{background:#e8e0d0;border-color:#b0a080}';
+  }
+  document.head.appendChild(s);
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
+  loadPrefs();
   makeBG();
   showScreen('screen-home');
   $('ok-btn').disabled=true;
