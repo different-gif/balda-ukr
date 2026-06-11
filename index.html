@@ -745,7 +745,7 @@ function renderWordList(){
     wh.innerHTML='<div style="color:#aaa;font-size:12px;padding:4px 8px">Слова зʼявляться тут…</div>';
     return;
   }
-  const recent=[...S.usedWords].reverse().slice(0,5);
+  const recent=[...S.usedWords].reverse();
   recent.forEach(({word,player})=>{
     const row=el('div',`wrow p${player}`);
     const nm=el('span','wrow-name',S.names[player]);
