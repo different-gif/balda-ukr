@@ -473,6 +473,20 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh
   </div>
 </div>
 
+<!-- ═══════════ MODAL: TIME UP ═══════════ -->
+<div id="modal-timeup" class="overlay hidden">
+  <div class="mbox" style="text-align:center">
+    <div class="mtitle">⏰ Час вичерпано!</div>
+    <div style="font-size:14px;color:#6b5a3e;margin-bottom:16px" id="tu-text">
+      Передати хід чи попросити додатковий час?
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="mbtn" id="tu-pass" style="flex:1;margin-bottom:0">➡ Передати</button>
+      <button class="mbtn start" id="tu-extra" style="flex:1;margin-bottom:0">⏳ Попросити</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════ MODAL: MENU ═══════════ -->
 <div id="modal-menu" class="overlay hidden">
   <div class="mbox">
@@ -1103,8 +1117,7 @@ function startTimer(){
     updTimer();
     if(S.timerLeft<=0){
       stopTimer();
-      setStatus(S.names[S.cur]+' — час вийшов! Хід пропущено.');
-      setTimeout(()=>{ clearTurn(false); nextTurn(); },1200);
+      showTimeUpModal();
     }
   },1000);
 }
@@ -1115,6 +1128,22 @@ function updTimer(){
   el.textContent=fmt(S.timerLeft);
   el.classList.toggle('warn',S.timerLeft<=15);
 }
+
+// ── TIME UP MODAL ────────────────────────────────────────────
+function showTimeUpModal(){
+  $('tu-text').textContent=S.names[S.cur]+', час вичерпано! Передати хід чи попросити додатковий час?';
+  $('modal-timeup').classList.remove('hidden');
+}
+$('tu-pass').addEventListener('click',()=>{
+  $('modal-timeup').classList.add('hidden');
+  setStatus(S.names[S.cur]+' — час вийшов! Хід пропущено.');
+  clearTurn(false); nextTurn();
+});
+$('tu-extra').addEventListener('click',()=>{
+  $('modal-timeup').classList.add('hidden');
+  setStatus(S.names[S.cur]+' отримав додатковий час');
+  resetTimer(); startTimer();
+});
 
 // ── STATUS ───────────────────────────────────────────────────
 let stTO=null;
