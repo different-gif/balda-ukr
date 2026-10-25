@@ -597,6 +597,7 @@ function initGame(){
   S.active=true;
   renderAll(); updateTurnUI();
   resetTimer(); startTimer();
+  keepAwake();
 }
 
 // ── RENDER ───────────────────────────────────────────────────
@@ -1156,8 +1157,26 @@ function setStatus(msg,type){
 }
 
 // ── GAME OVER ────────────────────────────────────────────────
+// ── WAKE LOCK ────────────────────────────────────────────────
+// Поки триває партія, не даємо телефону гасити й блокувати екран.
+let wakeLock=null;
+async function keepAwake(){
+  if(!('wakeLock' in navigator) || wakeLock || document.visibilityState!=='visible') return;
+  try{
+    wakeLock=await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release',()=>{ wakeLock=null; });
+  }catch(e){ wakeLock=null; }
+}
+function allowSleep(){
+  if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock=null; }
+}
+// Браузер знімає блокування, коли вкладку згорнули, — повертаємо його.
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && S.active) keepAwake();
+});
+
 function endGame(){
-  S.active=false; stopTimer();
+  S.active=false; stopTimer(); allowSleep();
   const w=S.scores[0]>S.scores[1]?'🏆 '+S.names[0]+' переміг!':
           S.scores[1]>S.scores[0]?'🏆 '+S.names[1]+' переміг!':'🤝 Нічия!';
   $('go-title').textContent=w;
@@ -1209,7 +1228,7 @@ $('menu-btn').addEventListener('click',()=>{ stopTimer(); $('modal-menu').classL
 $('m-resume').addEventListener('click',()=>{ $('modal-menu').classList.add('hidden'); if(S.active)startTimer(); });
 $('m-new').addEventListener('click',()=>{ $('modal-menu').classList.add('hidden'); openNewGame(); });
 $('m-settings').addEventListener('click',()=>{ $('modal-menu').classList.add('hidden'); showScreen('screen-settings'); loadSettings(); });
-$('m-exit').addEventListener('click',()=>{ $('modal-menu').classList.add('hidden'); S.active=false; stopTimer(); showScreen('screen-home'); });
+$('m-exit').addEventListener('click',()=>{ $('modal-menu').classList.add('hidden'); S.active=false; stopTimer(); allowSleep(); showScreen('screen-home'); });
 
 // ── GAME OVER BUTTONS ────────────────────────────────────────
 $('go-new').addEventListener('click',()=>{ $('go-ov').classList.add('hidden'); openNewGame(); });
